@@ -1,10 +1,9 @@
-
 #/bin/sh
 
 VERSION=1.0.0
 
-MAIN_PACKAGE=yuicu.main
-MAIN_CLASS=YUICompressorUtilsMain
+MAIN_PACKAGE=yuicompressorutils.main
+MAIN_CLASS=MainYUICompressorUtils
 
 CP=.
 CP=${CP}:classes
@@ -30,7 +29,16 @@ cleanOut() {
 }
 
 runIt() {
-	java -cp ${CP} ${MAIN_PACKAGE}.${MAIN_CLASS}
+	NAMES=files.txt
+	find . -not -iwholename '*src.deploy*' -not -path '*/\.*' -iwholename '*.js' -type f > ${NAMES}
+	find . -not -iwholename '*src.deploy*' -not -path '*/\.*' -iwholename '*.css' -type f >> ${NAMES}
+	for line in $(cat $NAMES) ; do
+		DESTINY=src.deploy/${line}
+		DESTINY_PARENT=$(dirname ${DESTINY})
+		[ -d $DESTINY_PARENT ] || mkdir $DESTINY_PARENT
+		java -cp ${CP} -jar lib/yuicompressor-2.4.8.jar -v -o ${DESTINY} ${line}
+	done
+	rm -f ${NAMES}
 }
 
 compileIt() {
@@ -52,7 +60,7 @@ AppleHideAllFiles() {
 if [ -z "$1" ] ; then
 	echo
 	echo "Error!"
-	echo "Usage: ./Replacer.sh (compileIt | clean[Bin|Classes|Out] | runIt | Apple(Show|Hide)AllFiles)"
+	echo "Usage: ./YUI-Compressor-Utils.sh (compileIt | clean[Bin|Classes|Out] | runIt | Apple(Show|Hide)AllFiles)"
 	echo
 else
 	$1
