@@ -29,18 +29,14 @@ cleanClasses() {
 cleanOut() {
 	if [ -d ${SRC_DEPLOY} ] ; then
 		NAMES=files.txt
-		find src.deploy -not -path '*/\.*' -iwholename '*.js' -type f > ${NAMES}
-		find src.deploy -not -path '*/\.*' -iwholename '*.css' -type f >> ${NAMES}
+		find src.deploy -not -path '*/\.*' -name '*.css' -o -name '*.js' -type f > ${NAMES}
 		for line in $(cat $NAMES) ; do
 			DESTINY=${SRC_DEPLOY}/${line}
 			rm ${line}
 		done
 		rm -f ${NAMES}
 	else
-		echo
-		echo "  Error!"
-		echo "  Directory src.deploy not found!"
-		echo
+		msg "Error!" "Directory src.deploy not found!"
 	fi
 }
 
@@ -49,21 +45,20 @@ runIt() {
 	SRC_DEPLOY=src.deploy
 	if [ -d ${SRC_DEPLOY} ] ; then
 		NAMES=files.txt
-		find . -not -iwholename '*src.deploy*' -not -path '*/\.*' -iwholename '*.js' -type f > ${NAMES}
-		find . -not -iwholename '*src.deploy*' -not -path '*/\.*' -iwholename '*.css' -type f >> ${NAMES}
+		find . -not -iwholename '*src.deploy*' -not -path '*/\.*' -name '*.css' -type f > ${NAMES}
+		find . -not -iwholename '*src.deploy*' -not -path '*/\.*' -name '*.js' -type f >> ${NAMES}
 		for line in $(cat $NAMES) ; do
 			DESTINY=${SRC_DEPLOY}/${line}
 			DESTINY_PARENT=$(dirname ${DESTINY})
 			[ -d $DESTINY_PARENT ] || mkdir $DESTINY_PARENT
+			msg_ "=> File: ${DESTINY}"
 			java -cp ${CP} -jar lib/${YUI_COMPRESSOR_JAR} -v -o ${DESTINY} ${line}
 			checkError "Error!" "java not found!"
+			msg__ "________________________________________________________________________________"
 		done
 		rm -f ${NAMES}
 	else
-		echo
-		echo "  Error!"
-		echo "  Directory src.deploy not found!"
-		echo
+		msg "Error!" "Directory src.deploy not found!"
 	fi
 }
 
@@ -86,21 +81,35 @@ DontShowHiddenFiles() {
 
 checkError() {
 	if [ $? -ne 0 ] ; then
-		echo
-		echo "  ${1}"
-		echo "  ${2}"
-		echo
+		msg ${1} ${2}
 	fi
+}
+
+msg() {
+	echo
+	echo "  ${1}"
+	echo "  ${2}"
+	echo
+}
+
+msg_() {
+	echo "${1}"
+	echo
+}
+
+msg__() {
+	echo
+	echo "${1}"
+	echo
+	echo
+	echo
 }
 
 if [ -z "$1" ] ; then
 	echo
 	echo "${NAME} - ${VERSION}"
 	echo "============================"
-	echo
-	echo "  Error!"
-	echo "  Usage: ./YUI-Compressor-Utils.sh [commands...]"
-	echo
+	msg "Error!" "Usage: ./YUI-Compressor-Utils.sh [commands...]"
 	echo "  Available commands:"
 	echo "         ./YUI-Compressor-Utils.sh [compileIt | clean[Bin|Classes|Out] | runIt | [Dont]ShowHiddenFiles]"
 	echo
